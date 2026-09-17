@@ -26,7 +26,7 @@ internal object ViewVisibilityPolicy {
 
         val pSize = s.primary.size
         val sSize = s.secondary.size
-        val isTransition = v0.main.isFinished && v1 != null
+        val isTransition = v0.main.isFinished && v1 != null && v1.main.isStarted
         val v0HasSec = v0.secondary.model.let { it.text.isNotBlank() || it.words.isNotEmpty() }
 
         // Phase 1: size assignment
@@ -35,18 +35,23 @@ internal object ViewVisibilityPolicy {
         v1?.main?.setTextSize(if (isTransition) pSize else sSize)
         v1?.secondary?.setTextSize(sSize)
 
-        // Phase 2+3: candidate flags + slot enforcement (max 2 visible LyricLineView)
-        val wantV0sec = !isTransition && (v0.alwaysShowSecondary || (v0HasSec && v0.secondary.isStarted))
-        var remaining = 2
-        val v0mVis = remaining > 0; if (v0mVis) remaining--
-        val v1mVis = v1 != null && remaining > 0; if (v1mVis) remaining--
-        val v0sVis = wantV0sec && remaining > 0; if (v0sVis) remaining--
-        val v1sVis = v1 != null && false && remaining > 0; if (v1sVis) remaining--
+        // Phase 2+3: candidate flags + slot enforcement (max 2 visible sub-views)
+        val secondaryActive = v0HasSec && v0.secondary.isStarted && !v0.secondary.isFinished
+        val slots = LyricSlotPolicy.select(
+            hasNextLine = v1 != null,
+            mainFinished = v0.main.isFinished,
+            secondaryVisible = v0.alwaysShowSecondary || secondaryActive,
+            secondaryActive = secondaryActive,
+            secondaryMetadata = v0.secondary.model.metadata,
+        )
+        val v0mVis = slots.firstMain
+        val v0sVis = slots.firstSecondary
+        val v1mVis = slots.secondMain
 
         v0.main.visibilityIfChanged = if (v0mVis) View.VISIBLE else View.GONE
         v0.secondary.visibilityIfChanged = if (v0sVis) View.VISIBLE else View.GONE
         v1?.main?.visibilityIfChanged = if (v1mVis) View.VISIBLE else View.GONE
-        v1?.secondary?.visibilityIfChanged = if (v1sVis) View.VISIBLE else View.GONE
+        v1?.secondary?.visibilityIfChanged = View.GONE
 
         // Phase 4: hide v2+
         for (i in 2 until views.size) {
@@ -70,7 +75,6 @@ internal object ViewVisibilityPolicy {
         if (v0mVis) visibleCount++
         if (v1mVis) visibleCount++
         if (v0sVis) visibleCount++
-        if (v1sVis) visibleCount++
 
         val scale = if (visibleCount > 1) s.scaleMultiLine.coerceIn(0.1f, 2f) else 1f
         val isMulti = visibleCount > 1 && v1 != null && v1.isVisible && scale != 1f

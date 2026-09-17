@@ -73,4 +73,14 @@ internal class SongPreprocessor(private val placeholder: TitleSlot) {
 internal class TimedLine(val line: IRichLyricLine) : IRichLyricLine by line {
     var previous: TimedLine? = null
     var next: TimedLine? = null
+
+    override var end: Long
+        get() {
+            val mainEnd = maxOf(line.end, line.words?.maxOfOrNull { it.end } ?: 0L)
+            val secondaryEnd = line.secondaryWords?.maxOfOrNull { it.end } ?: 0L
+            return maxOf(mainEnd, secondaryEnd)
+        }
+        set(value) {
+            line.end = value
+        }
 }

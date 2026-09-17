@@ -43,6 +43,14 @@ object LyricViewController : ActivePlayerListener,
     var isPlaying: Boolean = false
         private set
 
+    @Volatile
+    private var retainPausedLyrics = false
+
+    fun setKeepLyricsOnPause(keep: Boolean) {
+        retainPausedLyrics = keep
+        updateAllControllers { lyricView.keepLyricsOnPause = keep }
+    }
+
     /** 当前活跃播放器的包名 */
     @Volatile
     var activePackage: String = ""
@@ -103,11 +111,17 @@ object LyricViewController : ActivePlayerListener,
      */
     override fun onSongChanged(song: Song?) {
         YLog.info(TAG, "onSongChanged: $song")
+        val previousSong = currentSong
+        if (song == null || previousSong?.id != song.id ||
+            previousSong?.name != song.name || previousSong?.artist != song.artist) {
+            setKeepLyricsOnPause(false)
+        }
         this.currentSong = song
 
         updateAllControllers {
             lyricView.setSong(song)
             refreshTranslationVisibility(lyricView)
+            if (!isPlaying && retainPausedLyrics) lyricView.seekTo(currentLogicPosition)
         }
 
         updateCoverFileFromSong(song)
@@ -133,6 +147,7 @@ object LyricViewController : ActivePlayerListener,
      */
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
         YLog.info(TAG, "onActiveProviderChanged: $providerInfo")
+        setKeepLyricsOnPause(false)
 
         this.activePackage = providerInfo?.playerPackageName.orEmpty()
         LyricPrefs.activePackageName = this.activePackage
@@ -151,7 +166,11 @@ object LyricViewController : ActivePlayerListener,
         YLog.info(TAG, "onPlaybackStateChanged: $isPlaying")
 
         this.isPlaying = isPlaying
-        updateAllControllers { lyricView.setPlaying(isPlaying) }
+        if (isPlaying) retainPausedLyrics = false
+        updateAllControllers {
+            lyricView.setPlaying(isPlaying)
+            if (isPlaying) lyricView.keepLyricsOnPause = false
+        }
 
         refreshHdrHighlightState()
         // setPlaying 的视图动画在主线程稍后生效，post 一帧后再同步超级岛状态
@@ -183,6 +202,7 @@ object LyricViewController : ActivePlayerListener,
      */
     override fun onReceiveText(text: String?) {
         YLog.info(TAG, "onReceiveText: $text")
+        if (text.isNullOrBlank()) setKeepLyricsOnPause(false)
         updateAllControllers { lyricView.setText(text) }
     }
 
@@ -348,7 +368,7 @@ object LyricViewController : ActivePlayerListener,
     private fun syncXiaomiIslandHide() {
         if (!XiaomiIslandHooker.isSupported()) return
         val enabled = LyricPrefs.baseStyle.xiaomiIslandTempHideEnabled
-        val playing = isPlaying
+        val playing = isPlaying || retainPausedLyrics
         val lyricVisible = StatusBarViewManager.controllers.any { controller ->
             val view = controller.lyricView
             view.isAttachedToWindow &&

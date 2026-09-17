@@ -37,6 +37,7 @@ open class LyricPlayerView(
     }
 
     private var isTextMode = false
+    private var playbackPaused = false
     private var style = LyricViewStyle()
 
     private var lineList: List<TimedLine>? = null
@@ -189,6 +190,12 @@ open class LyricPlayerView(
     fun seekTo(position: Long) = updatePosition(position, true)
 
     fun setPosition(position: Long) = updatePosition(position)
+
+    fun setPlaybackPaused(paused: Boolean) {
+        playbackPaused = paused
+        textRecycleView.setPlaybackPaused(paused)
+        forEach { if (it is RichLyricLineView) it.setPlaybackPaused(paused) }
+    }
 
     fun reset() {
         removeAllViews()
@@ -343,6 +350,7 @@ open class LyricPlayerView(
         enableRelativeProgress = style.primary.relativeProgress,
         enableRelativeProgressHighlight = style.primary.relativeHighlight,
     ).apply {
+        setPlaybackPaused(this@LyricPlayerView.playbackPaused)
         hdrHighlightRatio = this@LyricPlayerView.hdrHighlightRatio
         this.line = line
         setStyle(style)

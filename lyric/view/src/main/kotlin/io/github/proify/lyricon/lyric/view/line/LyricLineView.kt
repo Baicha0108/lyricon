@@ -89,24 +89,6 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         }
 
     /**
-     * 拉长音辉光开关。
-     *
-     * 关闭时把上游的 [EmphasizeGlowEffect] 从特效链中摘除，其余特效不受影响；
-     * 重新打开时按原顺序（[WaveLiftEffect] 之后）挂回。
-     */
-    var sustainGlowEnabled: Boolean = true
-        set(value) {
-            if (field == value) return
-            field = value
-            if (value) {
-                effectEngine.add(emphasizeGlowEffect)
-            } else {
-                effectEngine.remove(emphasizeGlowEffect.name)
-            }
-            invalidate()
-        }
-
-    /**
      * 当前特效链（默认为内置 [WaveLiftEffect] + 强调辉光 [EmphasizeGlowEffect]；
      * 可整体替换以实现自定义歌词特效）。
      */
@@ -163,13 +145,15 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     /** 配色统一入口：正文着色与彩虹渐变缓存。 */
     private val textStyle = LyricTextStyle()
 
+    private var playbackPaused = false
+
     /** 帧调度：每帧步进当前渲染器，有变化时请求重绘。 */
     private val animator = FrameAnimator(
         onFrame = { deltaNanos ->
             activeRenderer.step(deltaNanos, _model, lineState, measuredWidth)
         },
         requestInvalidate = { postInvalidateOnAnimation() },
-        shouldRun = { isAttachedToWindow },
+        shouldRun = { isAttachedToWindow && !playbackPaused },
         post = { runnable -> post(runnable) },
     )
 
@@ -184,6 +168,12 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     private var scrollUnlocked = false
 
     val textSize: Float get() = textPaint.textSize
+
+    fun setPlaybackPaused(paused: Boolean) {
+        if (playbackPaused == paused) return
+        playbackPaused = paused
+        if (paused) animator.stop() else animator.startIfNeeded()
+    }
 
     fun setTextSize(size: Float) {
         val needsUpdate = textPaint.textSize != size || syncRenderer.bgPaint.textSize != size

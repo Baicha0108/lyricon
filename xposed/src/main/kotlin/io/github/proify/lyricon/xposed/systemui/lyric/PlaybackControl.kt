@@ -34,12 +34,20 @@ object PlaybackControl {
     }
 
     /** 在播放与暂停之间切换 */
-    fun togglePlay() {
+    fun togglePlay(keepLyricsOnPause: Boolean = false) {
         val controls = transportControls() ?: return
-        if (LyricViewController.isPlaying) {
-            controls.pause()
-        } else {
-            controls.play()
+        val wasPlaying = LyricViewController.isPlaying
+        val retainPause = wasPlaying && keepLyricsOnPause
+        if (retainPause) LyricViewController.setKeepLyricsOnPause(true)
+        try {
+            if (wasPlaying) {
+                controls.pause()
+            } else {
+                controls.play()
+            }
+        } catch (e: Exception) {
+            if (retainPause) LyricViewController.setKeepLyricsOnPause(false)
+            YLog.error(TAG, "Failed to toggle playback", e)
         }
     }
 

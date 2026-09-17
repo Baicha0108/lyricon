@@ -71,6 +71,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 val LocalBottomBarBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 val LocalFloatingBottomBarEnabled = staticCompositionLocalOf { false }
 val LocalLiquidGlassEnabled = staticCompositionLocalOf { false }
+val LocalSharedBackgroundEnabled = staticCompositionLocalOf { false }
 private val FloatingBottomBarScrollPadding = 96.dp
 
 @Composable
@@ -173,7 +174,7 @@ fun AppToolBarListContainer(
         val flowingBackground by rememberBooleanPreference(
             context.defaultSharedPreferences,
             "enable_flowing_background",
-            false
+            true
         )
 
         val titleText = remember(title) {
@@ -264,11 +265,7 @@ fun AppToolBarListContainer(
             if (flowingBackground) {
                 // 用主题背景亮度实时判断明暗，避免全局 var（非响应式）滞后导致暗色误用亮色流光
                 val isDarkBg = MiuixTheme.colorScheme.background.luminance() < 0.5f
-                BgEffectBackground(
-                    dynamicBackground = true,
-                    modifier = Modifier.fillMaxSize(),
-                    isDarkTheme = isDarkBg,
-                ) {
+                val flowingScaffold: @Composable () -> Unit = {
                     // 流光模式下让卡片（默认取 surfaceContainer 系列色）转为半透明，
                     // 复用关于页的观感——透出底层流光，而不是不透明黑块
                     val cs = MiuixTheme.colorScheme
@@ -283,6 +280,15 @@ fun AppToolBarListContainer(
                             dividerLine = Color.Transparent,
                         ),
                     ) { scaffold() }
+                }
+                if (LocalSharedBackgroundEnabled.current) {
+                    flowingScaffold()
+                } else {
+                    BgEffectBackground(
+                        dynamicBackground = true,
+                        modifier = Modifier.fillMaxSize(),
+                        isDarkTheme = isDarkBg,
+                    ) { flowingScaffold() }
                 }
             } else {
                 scaffold()
