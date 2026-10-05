@@ -251,6 +251,25 @@ private fun FloatingBarSetting() {
         }
     )
 
+    // 液态玻璃：只在悬浮底栏开启、且系统支持（Android 13+）时提供。
+    // 与底栏控件内部的兼容判断（TIRAMISU）保持一致；关闭后底栏退化为不透明药丸。
+    if (floatingBarEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        var liquidGlassEnabled by rememberBooleanPreference(
+            sharedPreferences,
+            "enable_floating_bottom_bar_glass",
+            true
+        )
+        SwitchPreference(
+            checked = liquidGlassEnabled,
+            startAction = { IconActions(painterResource(R.drawable.ic_liquid_glass)) },
+            title = stringResource(R.string.item_floating_bottom_bar_glass),
+            summary = stringResource(R.string.item_summary_floating_bottom_bar_glass),
+            onCheckedChange = {
+                liquidGlassEnabled = it
+            }
+        )
+    }
+
     var flowingBackgroundEnabled by rememberBooleanPreference(
         sharedPreferences,
         "enable_flowing_background",

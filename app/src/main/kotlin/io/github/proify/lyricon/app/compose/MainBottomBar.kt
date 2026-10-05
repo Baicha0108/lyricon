@@ -40,6 +40,7 @@ fun MainBottomBar(
     items: List<MainBottomBarItem>,
     selectedIndex: Int,
     onSelected: (Int) -> Unit,
+    glassEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val isFloating = LocalFloatingBottomBarEnabled.current
@@ -108,7 +109,8 @@ fun MainBottomBar(
             onSelected = onSelected,
             backdrop = backdrop,
             tabsCount = items.size,
-            mode = FloatingBottomBarMode.LiquidGlass,
+            // 关闭液态玻璃时退化为不透明药丸（与 KernelSU 关闭态一致）
+            mode = if (glassEnabled) FloatingBottomBarMode.LiquidGlass else FloatingBottomBarMode.None,
         ) {
             items.forEachIndexed { index, item ->
                 FloatingBottomBarItem(

@@ -314,6 +314,8 @@
     <string name="home_info_system_build">系統建置</string>
     <string name="item_floating_bottom_bar">懸浮底欄</string>
     <string name="item_summary_floating_bottom_bar">開啟以啟用懸浮風格的底部導覽列。</string>
+    <string name="item_floating_bottom_bar_glass">液態玻璃</string>
+    <string name="item_summary_floating_bottom_bar_glass">啟用懸浮底欄的液態玻璃效果（Android 13 及以上）。</string>
     <string name="item_show_desktop_icon">顯示桌面圖示</string>
     <string name="item_show_desktop_icon_summary">在啟動器中顯示詞幕。</string>
     <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>

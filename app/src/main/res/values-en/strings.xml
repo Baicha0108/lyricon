@@ -314,6 +314,8 @@
     <string name="home_info_system_build">System Build</string>
     <string name="item_floating_bottom_bar">Floating Bottom Bar</string>
     <string name="item_summary_floating_bottom_bar">Enable to use floating style bottom navigation bar.</string>
+    <string name="item_floating_bottom_bar_glass">Liquid glass</string>
+    <string name="item_summary_floating_bottom_bar_glass">Enable the liquid glass effect for the floating bottom bar (Android 13+).</string>
     <string name="item_show_desktop_icon">Show desktop icon</string>
     <string name="item_show_desktop_icon_summary">Show Lyricon in the launcher.</string>
     <string name="toast_desktop_icon_hidden">Desktop icon hidden. You can restore it from Lyricon settings.</string>

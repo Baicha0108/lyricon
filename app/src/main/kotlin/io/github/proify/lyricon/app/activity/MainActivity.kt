@@ -18,16 +18,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -250,10 +254,19 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
         var isFloating by remember {
             mutableStateOf(sharedPreferences.getBoolean("enable_floating_nav_bar", false))
         }
+        // 悬浮底栏的液态玻璃效果。开关仅在 Android 13+ 的设置页显示，
+        // 低版本没有开关，这里保持默认开启（与底栏控件内部的兼容判断一致）。
+        var isGlassEnabled by remember {
+            mutableStateOf(sharedPreferences.getBoolean("enable_floating_bottom_bar_glass", true))
+        }
         DisposableEffect(sharedPreferences) {
             val listener = SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
-                if (key == "enable_floating_nav_bar") {
-                    isFloating = preferences.getBoolean(key, false)
+                when (key) {
+                    "enable_floating_nav_bar" ->
+                        isFloating = preferences.getBoolean(key, false)
+
+                    "enable_floating_bottom_bar_glass" ->
+                        isGlassEnabled = preferences.getBoolean(key, true)
                 }
             }
             sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
@@ -286,11 +299,40 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
                 ImageVector.vectorResource(id = R.drawable.ic_settings)
             ),
         )
+
+        // 三个标签页放进 Pager：点击底栏/侧栏平滑翻页，同时支持左右滑动切页。
+        // 程序化翻页（isAnimatingPage）期间不做反向同步，避免"点击"与"滑动同步"互相打架。
+        val pagerState = rememberPagerState(initialPage = selectedIndex, pageCount = { 3 })
+        val pageScope = rememberCoroutineScope()
+        var isAnimatingPage by remember { mutableStateOf(false) }
+        val selectPage: (Int) -> Unit = { index ->
+            val target = index.coerceIn(0, 2)
+            if (target != selectedIndex) {
+                selectedIndex = target
+                isAnimatingPage = true
+                pageScope.launch {
+                    try {
+                        pagerState.animateScrollToPage(target)
+                    } finally {
+                        isAnimatingPage = false
+                    }
+                }
+            }
+        }
+        // 手指滑动翻页后，把底栏/侧栏的选中态同步回来
+        LaunchedEffect(pagerState.currentPage) {
+            val page = pagerState.currentPage
+            if (!isAnimatingPage && page != selectedIndex) {
+                selectedIndex = page
+            }
+        }
+
         val bottomBarContent: @Composable () -> Unit = {
             MainBottomBar(
                 items = items,
                 selectedIndex = selectedIndex,
-                onSelected = { selectedIndex = it }
+                glassEnabled = isGlassEnabled,
+                onSelected = selectPage
             )
         }
 
@@ -313,7 +355,7 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
                                 MainNavigationRail(
                                     items = items,
                                     selectedIndex = selectedIndex,
-                                    onSelected = { selectedIndex = it },
+                                    onSelected = selectPage,
                                     backdrop = if (sharedBackgroundEnabled) sharedBackgroundBackdrop else null,
                                 )
                             }
@@ -324,18 +366,23 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
                                 .fillMaxSize()
                                 .layerBackdrop(overlayBackdrop)
                         ) {
-                            when (selectedIndex) {
-                                0 -> HomeTab(
-                                    model = viewModel,
-                                    shortcutCounts = homeShortcutCounts,
-                                    actions = {
-                                        TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
-                                    },
-                                    bottomBar = pageBottomBar
-                                )
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.fillMaxSize(),
+                            ) { page ->
+                                when (page) {
+                                    0 -> HomeTab(
+                                        model = viewModel,
+                                        shortcutCounts = homeShortcutCounts,
+                                        actions = {
+                                            TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
+                                        },
+                                        bottomBar = pageBottomBar
+                                    )
 
-                                1 -> ConfigPage(bottomBar = pageBottomBar)
-                                2 -> SettingsPage(bottomBar = pageBottomBar)
+                                    1 -> ConfigPage(bottomBar = pageBottomBar)
+                                    2 -> SettingsPage(bottomBar = pageBottomBar)
+                                }
                             }
                         }
                     }
