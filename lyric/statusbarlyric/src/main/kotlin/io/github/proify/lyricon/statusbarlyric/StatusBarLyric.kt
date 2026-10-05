@@ -168,6 +168,26 @@ class StatusBarLyric(
         }
     }
 
+    /** 水平容器：logo + 歌词 */
+    private val lyricContainer: LinearLayout = LinearLayout(context).apply {
+        orientation = LinearLayout.HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+    }
+
+    /** 播放进度条 */
+    val progressBarView: LyricProgressBar = LyricProgressBar(context).apply {
+        visibility = GONE
+    }
+
+    /** 当前歌曲总时长（毫秒） */
+    private var currentDuration: Long = 0L
+
+    /** 最近一次播放进度（毫秒），用于样式刷新时避免进度条跳变 */
+    private var currentPosition: Long = 0L
+
+    /** 是否已绑定歌曲；未绑定时（无歌或纯文本歌词）进度条始终隐藏 */
+    private var hasBoundSong: Boolean = false
+
     // --- 对外状态 ---
 
     var currentStatusColor: StatusColor = StatusColor()
@@ -316,17 +336,44 @@ class StatusBarLyric(
 
     init {
         tag = VIEW_TAG
+        orientation = VERTICAL
         gravity = Gravity.CENTER_VERTICAL
         visibility = GONE
         layoutTransition = null
 
-        addView(
+        // 歌词水平容器（logo + 歌词）
+        lyricContainer.addView(
             textView,
             LayoutParams(0, LayoutParams.WRAP_CONTENT)
                 .apply {
                     weight = 1f
                 }
         )
+
+        // 根据配置决定进度条在歌词上方还是下方
+        val progressBarAbove =
+            initialStyle.basicStyle.progressBarPosition == BasicStyle.PROGRESS_BAR_POSITION_ABOVE
+        if (progressBarAbove) {
+            // 进度条在上，歌词在下
+            addView(
+                progressBarView,
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            )
+            addView(
+                lyricContainer,
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            )
+        } else {
+            // 歌词在上，进度条在下（默认）
+            addView(
+                lyricContainer,
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            )
+            addView(
+                progressBarView,
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            )
+        }
 
         updateLogoLocation()
         applyInitialStyle(initialStyle)
@@ -344,6 +391,7 @@ class StatusBarLyric(
         updateLogoLocation()
         textView.applyStyle(style)
         updateLayoutConfig(style)
+        updateProgressBarStyle(style)
 
         refreshLyricTimeoutState()
         requestLayout()
@@ -353,6 +401,11 @@ class StatusBarLyric(
         currentStatusColor = color
         logoView.setStatusBarColor(color)
         textView.setStatusBarColor(color)
+        // 进度条配色：背景半透明，进度取状态栏主色
+        progressBarView.setColors(
+            color.translucentColor.firstOrNull() ?: 0,
+            color.color.firstOrNull() ?: 0
+        )
     }
 
     fun setHdrHighlightRatio(ratio: Float) {
@@ -422,18 +475,42 @@ class StatusBarLyric(
     fun setSong(song: Song?) {
         lyricType = SONG
         lastSong = song
+        hasBoundSong = song != null
+        applyDuration(song?.duration ?: 0L)
+        currentPosition = 0L
         textView.song = song
         hasLyricContent = !song?.lyrics.isNullOrEmpty()
         refreshLyricTimeoutState()
+        updateProgressBarUi()
     }
 
     fun setText(text: String?) {
         lyricType = TEXT
         lastText = text
+        hasBoundSong = false
+        applyDuration(0L)
+        currentPosition = 0L
 
         textView.text = text
         hasLyricContent = !text.isNullOrBlank()
         refreshLyricTimeoutState()
+        updateProgressBarUi()
+    }
+
+    /**
+     * 由上层下发的权威歌曲总时长（毫秒），<=0 表示时长未知。
+     *
+     * 第三方歌词提供者通过 AIDL 上报的 [Song.duration] 经常缺失或偏短，
+     * 会让进度条直接隐藏、或提前走满；上层可从系统媒体会话取到更贴近真实播放的时长，
+     * 通过这里覆盖 Song 的时长。
+     */
+    fun setDuration(durationMs: Long) {
+        val duration = durationMs.coerceAtLeast(0L)
+        if (currentDuration == duration) return
+        currentDuration = duration
+        // 时长变化后旧进度比例不再成立：越界则归零，等待下一次位置回调
+        if (currentPosition > currentDuration) currentPosition = 0L
+        updateProgressBarUi()
     }
 
     fun seekTo(position: Long) {
@@ -444,6 +521,7 @@ class StatusBarLyric(
 
         textView.seekTo(position)
         refreshLyricTimeoutState()
+        updateProgressBar(position)
     }
 
     fun setPosition(position: Long) {
@@ -453,6 +531,7 @@ class StatusBarLyric(
         }
 
         textView.setPosition(position)
+        updateProgressBar(position)
     }
 
     fun updateDisplayTranslation(
@@ -593,6 +672,7 @@ class StatusBarLyric(
         logoView.applyStyle(style)
         textView.applyStyle(style)
         updateLayoutConfig(style)
+        updateProgressBarStyle(style)
     }
 
     private fun updateLogoLocation() {
@@ -601,13 +681,13 @@ class StatusBarLyric(
 
         if (gravity == lastLogoGravity) return; lastLogoGravity = gravity
 
-        if (contains(logoView)) removeView(logoView)
-        val textIndex = indexOfChild(textView).coerceAtLeast(0)
+        if (lyricContainer.contains(logoView)) lyricContainer.removeView(logoView)
+        val textIndex = lyricContainer.indexOfChild(textView).coerceAtLeast(0)
 
         when (gravity) {
-            LogoStyle.GRAVITY_START -> addView(logoView, textIndex)
-            LogoStyle.GRAVITY_END -> addView(logoView, textIndex + 1)
-            else -> addView(logoView, textIndex)
+            LogoStyle.GRAVITY_START -> lyricContainer.addView(logoView, textIndex)
+            LogoStyle.GRAVITY_END -> lyricContainer.addView(logoView, textIndex + 1)
+            else -> lyricContainer.addView(logoView, textIndex)
         }
     }
 
@@ -631,6 +711,93 @@ class StatusBarLyric(
             paddings.right.dp,
             paddings.bottom.dp
         )
+    }
+
+    /** 更新进度条样式（高度、圆角、颜色模式、上下位置）；可见性由 [updateProgressBar] 统一控制 */
+    private fun updateProgressBarStyle(style: LyricStyle) {
+        val basic = style.basicStyle
+        progressBarView.barHeight = basic.progressBarHeight.dp.toFloat()
+        progressBarView.cornerRadius = basic.progressBarHeight.dp / 2f
+        progressBarView.colorMode = basic.progressBarColorMode
+
+        // 进度条位置切换（歌词上方 / 歌词下方）
+        val isAbove = basic.progressBarPosition == BasicStyle.PROGRESS_BAR_POSITION_ABOVE
+        val progressIndex = indexOfChild(progressBarView)
+        val lyricIndex = indexOfChild(lyricContainer)
+        val shouldBeAbove = isAbove && progressIndex > lyricIndex
+        val shouldBeBelow = !isAbove && progressIndex < lyricIndex
+        if (shouldBeAbove || shouldBeBelow) {
+            removeView(progressBarView)
+            removeView(lyricContainer)
+            if (isAbove) {
+                addView(
+                    progressBarView,
+                    LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+                )
+                addView(
+                    lyricContainer,
+                    LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+                )
+            } else {
+                addView(
+                    lyricContainer,
+                    LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+                )
+                addView(
+                    progressBarView,
+                    LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+                )
+            }
+        }
+
+        // 位置偏移：正数远离歌词（上方=向上，下方=向下），负数靠近歌词
+        val lp = progressBarView.layoutParams as? LayoutParams
+        if (lp != null) {
+            val offsetPx = basic.progressBarOffsetY.dp
+            if (isAbove) {
+                // 进度条在歌词上方：bottomMargin 控制与歌词的间距
+                lp.topMargin = 0
+                lp.bottomMargin = offsetPx
+            } else {
+                // 进度条在歌词下方：topMargin 控制与歌词的间距
+                lp.topMargin = offsetPx
+                lp.bottomMargin = 0
+            }
+            progressBarView.layoutParams = lp
+        }
+        updateProgressBarUi()
+    }
+
+    /** 设置当前歌曲总时长；负数一律视为未知 */
+    private fun applyDuration(durationMs: Long) {
+        currentDuration = durationMs.coerceAtLeast(0L)
+    }
+
+    /**
+     * 更新进度条进度。
+     *
+     * 只采纳合法进度：时长未知、或进度越界（切歌瞬间残留的上一首进度）时保留上一次有效值，
+     * 避免进度条一下子满格。
+     */
+    private fun updateProgressBar(position: Long) {
+        if (currentDuration > 0 && position in 0..currentDuration) {
+            currentPosition = position
+        }
+        updateProgressBarUi()
+    }
+
+    /** 按当前状态刷新进度条的可见性与比例；开关关闭、未绑定歌曲或时长无效时自动隐藏 */
+    private fun updateProgressBarUi() {
+        val hasValidDuration = currentDuration > 0
+        val shouldShow = currentStyle.basicStyle.showProgressBar &&
+                hasValidDuration &&
+                hasBoundSong
+        progressBarView.visibility = if (shouldShow) VISIBLE else GONE
+        progressBarView.progress = if (hasValidDuration) {
+            currentPosition.toFloat() / currentDuration.toFloat()
+        } else {
+            0f
+        }
     }
 
     private fun updateWidthInternal(style: LyricStyle) {

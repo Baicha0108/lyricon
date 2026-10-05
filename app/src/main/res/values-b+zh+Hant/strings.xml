@@ -378,4 +378,19 @@
     <string name="update_download">立即下載</string>
     <string name="update_download_retry">重新下載</string>
     <string name="update_install">立即安裝</string>
+
+    <!-- 播放進度條 -->
+    <string name="section_progress_bar">播放進度條</string>
+    <string name="item_progress_bar_enabled">顯示播放進度條</string>
+    <string name="item_progress_bar_enabled_summary">在歌詞下方顯示歌曲播放進度</string>
+    <string name="item_progress_bar_height">進度條高度</string>
+    <string name="dialog_summary_progress_bar_height">設定進度條高度（dp，0.5 ~ 10）</string>
+    <string name="item_progress_bar_offset">進度條偏移</string>
+    <string name="dialog_summary_progress_bar_offset">進度條上下偏移（-20 ~ 20 dp），正數向下</string>
+    <string name="item_progress_bar_color_mode">進度條顏色</string>
+    <string name="item_progress_bar_color_follow">跟隨狀態列</string>
+    <string name="item_progress_bar_color_rainbow">彩虹漸變</string>
+    <string name="item_progress_bar_position">進度條位置</string>
+    <string name="item_progress_bar_position_below">歌詞下方</string>
+    <string name="item_progress_bar_position_above">歌詞上方</string>
 </resources>

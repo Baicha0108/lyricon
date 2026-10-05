@@ -6,6 +6,8 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric
 
+import android.media.MediaMetadata
+import android.media.session.MediaController
 import android.os.Handler
 import io.github.proify.android.extensions.crc32
 import io.github.proify.lyricon.lyric.model.Song
@@ -20,7 +22,9 @@ import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
+import io.github.proify.lyricon.xposed.systemui.util.MediaTrackMeta
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
+import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaUtils
 import java.io.File
 
 /**
@@ -96,6 +100,20 @@ object LyricViewController : ActivePlayerListener,
     @Volatile
     private var isXiaomiIslandShowing: Boolean = false
 
+    /**
+     * 系统媒体元数据监听。
+     *
+     * 切歌后系统侧时长往往晚于 Song 到达，或 Song 根本没带时长；
+     * 元数据变化时把权威时长补给状态栏进度条，避免进度条隐藏或提前满格。
+     * 回调已由 [SystemUIMediaUtils] 派发到主线程。
+     */
+    private val mediaDurationListener = object : SystemUIMediaUtils.MediaControllerCallback {
+        override fun onMediaChanged(controller: MediaController, metadata: MediaMetadata) {
+            if (controller.packageName != activePackage) return
+            pushEffectiveDuration()
+        }
+    }
+
     init {
         if (DEBUG) YLog.debug(TAG, "Initializing LyricViewController...")
         // 注册数据总线、系统钩子及封面更新监听
@@ -103,6 +121,7 @@ object LyricViewController : ActivePlayerListener,
         OplusCapsuleHooker.registerListener(this)
         XiaomiIslandHooker.registerListener(this)
         NotificationCoverHelper.registerListener(this)
+        SystemUIMediaUtils.registerListener(mediaDurationListener)
     }
 
     /**
@@ -112,9 +131,13 @@ object LyricViewController : ActivePlayerListener,
     override fun onSongChanged(song: Song?) {
         YLog.info(TAG, "onSongChanged: $song")
         val previousSong = currentSong
-        if (song == null || previousSong?.id != song.id ||
-            previousSong?.name != song.name || previousSong?.artist != song.artist) {
+        val songChanged = song == null || previousSong?.id != song.id ||
+                previousSong?.name != song.name || previousSong?.artist != song.artist
+        if (songChanged) {
             setKeepLyricsOnPause(false)
+            // 真正切歌：丢弃上一首残留的进度更新，避免旧进度被灌进新歌导致进度条瞬间满格
+            mainHandler.removeCallbacks(frameUpdater)
+            currentLogicPosition = 0L
         }
         this.currentSong = song
 
@@ -124,7 +147,25 @@ object LyricViewController : ActivePlayerListener,
             if (!isPlaying && retainPausedLyrics) lyricView.seekTo(currentLogicPosition)
         }
 
+        pushEffectiveDuration()
         updateCoverFileFromSong(song)
+    }
+
+    /**
+     * 把当前歌曲的权威总时长下发给状态栏进度条。
+     *
+     * 第三方提供者上报的 [Song.duration] 经常缺失或偏短，系统媒体会话里的时长更贴近真实播放，
+     * 因此与拖动面板保持一致：系统媒体元数据优先，Song 兜底。
+     */
+    private fun pushEffectiveDuration() {
+        val song = currentSong
+        if (song == null) {
+            updateAllControllers { lyricView.setDuration(0L) }
+            return
+        }
+        val durationMs = MediaTrackMeta.resolve(activePackage)?.durationMs
+            ?: song.duration
+        updateAllControllers { lyricView.setDuration(durationMs) }
     }
 
     private fun updateCoverFileFromSong(song: Song?) {
@@ -155,6 +196,7 @@ object LyricViewController : ActivePlayerListener,
         updateAllControllers {
             resetViewForNewPlayer(this, providerInfo)
         }
+        pushEffectiveDuration()
     }
 
     /**
@@ -183,7 +225,8 @@ object LyricViewController : ActivePlayerListener,
      */
     override fun onPositionChanged(position: Long) {
         this.currentLogicPosition = position
-        // 进度更新极其频繁，直接 post 到 Handler
+        // 进度更新极其频繁：先移除待执行任务再 post，避免消息队列积压导致同一帧多次执行
+        mainHandler.removeCallbacks(frameUpdater)
         mainHandler.post(frameUpdater)
     }
 

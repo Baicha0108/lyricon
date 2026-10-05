@@ -285,6 +285,143 @@ fun BasicLyricSettingsScreen(
             }
         }
 
+        item(key = "progress_bar") {
+            SmallTitle(
+                text = stringResource(R.string.section_progress_bar),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 16.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
+                )
+            )
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+            ) {
+                var isProgressBarEnabled by rememberBooleanPreference(
+                    preferences,
+                    "lyric_style_base_show_progress_bar",
+                    BasicStyle.Defaults.SHOW_PROGRESS_BAR
+                )
+
+                SwitchPreference(
+                    checked = isProgressBarEnabled,
+                    onCheckedChange = { isProgressBarEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_visibility))
+                    },
+                    title = stringResource(R.string.item_progress_bar_enabled),
+                    summary = stringResource(R.string.item_progress_bar_enabled_summary),
+                )
+
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_progress_bar_height",
+                    title = stringResource(R.string.item_progress_bar_height),
+                    defaultValue = BasicStyle.Defaults.PROGRESS_BAR_HEIGHT.toDouble(),
+                    dialogSummary = stringResource(R.string.dialog_summary_progress_bar_height),
+                    range = 0.5..10.0,
+                    enabled = isProgressBarEnabled,
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_format_size))
+                    },
+                )
+
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_progress_bar_offset_y",
+                    title = stringResource(R.string.item_progress_bar_offset),
+                    defaultValue = BasicStyle.Defaults.PROGRESS_BAR_OFFSET_Y.toDouble(),
+                    dialogSummary = stringResource(R.string.dialog_summary_progress_bar_offset),
+                    range = -20.0..20.0,
+                    enabled = isProgressBarEnabled,
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_margin))
+                    },
+                )
+
+                val progressColorKeys = listOf(
+                    BasicStyle.PROGRESS_BAR_COLOR_FOLLOW,
+                    BasicStyle.PROGRESS_BAR_COLOR_RAINBOW
+                )
+                val progressColorOptions = listOf(
+                    DropdownItem(title = stringResource(R.string.item_progress_bar_color_follow)),
+                    DropdownItem(title = stringResource(R.string.item_progress_bar_color_rainbow)),
+                )
+                val currentProgressColorMode = preferences.getInt(
+                    "lyric_style_base_progress_bar_color_mode",
+                    BasicStyle.Defaults.PROGRESS_BAR_COLOR_MODE
+                )
+                val selectedProgressColorIndex = remember {
+                    mutableIntStateOf(
+                        progressColorKeys.indexOf(currentProgressColorMode).coerceAtLeast(0)
+                    )
+                }
+
+                OpaqueDropdownPopupTheme {
+                    OverlaySpinnerPreference(
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_gradient))
+                        },
+                        title = stringResource(R.string.item_progress_bar_color_mode),
+                        items = progressColorOptions,
+                        selectedIndex = selectedProgressColorIndex.intValue,
+                        enabled = isProgressBarEnabled,
+                        onSelectedIndexChange = {
+                            selectedProgressColorIndex.intValue = it
+                            preferences.editCommit {
+                                putInt(
+                                    "lyric_style_base_progress_bar_color_mode",
+                                    progressColorKeys[it]
+                                )
+                            }
+                        }
+                    )
+                }
+
+                val progressPositionKeys = listOf(
+                    BasicStyle.PROGRESS_BAR_POSITION_BELOW,
+                    BasicStyle.PROGRESS_BAR_POSITION_ABOVE
+                )
+                val progressPositionOptions = listOf(
+                    DropdownItem(title = stringResource(R.string.item_progress_bar_position_below)),
+                    DropdownItem(title = stringResource(R.string.item_progress_bar_position_above)),
+                )
+                val currentProgressPosition = preferences.getInt(
+                    "lyric_style_base_progress_bar_position",
+                    BasicStyle.Defaults.PROGRESS_BAR_POSITION
+                )
+                val selectedProgressPositionIndex = remember {
+                    mutableIntStateOf(
+                        progressPositionKeys.indexOf(currentProgressPosition).coerceAtLeast(0)
+                    )
+                }
+
+                OpaqueDropdownPopupTheme {
+                    OverlaySpinnerPreference(
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_margin))
+                        },
+                        title = stringResource(R.string.item_progress_bar_position),
+                        items = progressPositionOptions,
+                        selectedIndex = selectedProgressPositionIndex.intValue,
+                        enabled = isProgressBarEnabled,
+                        onSelectedIndexChange = {
+                            selectedProgressPositionIndex.intValue = it
+                            preferences.editCommit {
+                                putInt(
+                                    "lyric_style_base_progress_bar_position",
+                                    progressPositionKeys[it]
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
 
         item(key = "hdr") {
             SmallTitle(

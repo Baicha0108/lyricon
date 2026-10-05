@@ -389,4 +389,19 @@
     <string name="update_install">立即安装</string>
     <string name="expand_navigation">展开导航</string>
     <string name="collapse_navigation">收起导航</string>
+
+    <!-- 播放进度条 -->
+    <string name="section_progress_bar">播放进度条</string>
+    <string name="item_progress_bar_enabled">显示播放进度条</string>
+    <string name="item_progress_bar_enabled_summary">在歌词下方显示歌曲播放进度</string>
+    <string name="item_progress_bar_height">进度条高度</string>
+    <string name="dialog_summary_progress_bar_height">设置进度条高度（dp，0.5 ~ 10）</string>
+    <string name="item_progress_bar_offset">进度条偏移</string>
+    <string name="dialog_summary_progress_bar_offset">进度条上下偏移（-20 ~ 20 dp），正数向下</string>
+    <string name="item_progress_bar_color_mode">进度条颜色</string>
+    <string name="item_progress_bar_color_follow">跟随状态栏</string>
+    <string name="item_progress_bar_color_rainbow">彩虹渐变</string>
+    <string name="item_progress_bar_position">进度条位置</string>
+    <string name="item_progress_bar_position_below">歌词下方</string>
+    <string name="item_progress_bar_position_above">歌词上方</string>
 </resources>

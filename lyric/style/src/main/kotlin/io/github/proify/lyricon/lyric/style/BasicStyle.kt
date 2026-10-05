@@ -67,6 +67,12 @@ data class BasicStyle(
     var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
 
+    var showProgressBar: Boolean = Defaults.SHOW_PROGRESS_BAR,
+    var progressBarHeight: Float = Defaults.PROGRESS_BAR_HEIGHT,
+    var progressBarColorMode: Int = Defaults.PROGRESS_BAR_COLOR_MODE,
+    var progressBarOffsetY: Float = Defaults.PROGRESS_BAR_OFFSET_Y,
+    var progressBarPosition: Int = Defaults.PROGRESS_BAR_POSITION,
+
 
     ) : AbstractStyle(), Parcelable {
 
@@ -218,6 +224,27 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
         )
+
+        showProgressBar = preferences.getBoolean(
+            "lyric_style_base_show_progress_bar",
+            Defaults.SHOW_PROGRESS_BAR
+        )
+        progressBarHeight = preferences.getFloatCompat(
+            "lyric_style_base_progress_bar_height",
+            Defaults.PROGRESS_BAR_HEIGHT
+        )
+        progressBarColorMode = preferences.getInt(
+            "lyric_style_base_progress_bar_color_mode",
+            Defaults.PROGRESS_BAR_COLOR_MODE
+        )
+        progressBarOffsetY = preferences.getFloatCompat(
+            "lyric_style_base_progress_bar_offset_y",
+            Defaults.PROGRESS_BAR_OFFSET_Y
+        )
+        progressBarPosition = preferences.getInt(
+            "lyric_style_base_progress_bar_position",
+            Defaults.PROGRESS_BAR_POSITION
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -265,6 +292,12 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             xiaomiIslandAutoShrinkEnabled
         )
+
+        editor.putBoolean("lyric_style_base_show_progress_bar", showProgressBar)
+        editor.putFloat("lyric_style_base_progress_bar_height", progressBarHeight)
+        editor.putInt("lyric_style_base_progress_bar_color_mode", progressBarColorMode)
+        editor.putFloat("lyric_style_base_progress_bar_offset_y", progressBarOffsetY)
+        editor.putInt("lyric_style_base_progress_bar_position", progressBarPosition)
     }
 
     object Defaults {
@@ -296,6 +329,12 @@ data class BasicStyle(
         const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
         const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
+
+        const val SHOW_PROGRESS_BAR: Boolean = true
+        const val PROGRESS_BAR_HEIGHT: Float = 1f
+        const val PROGRESS_BAR_COLOR_MODE: Int = 1
+        const val PROGRESS_BAR_OFFSET_Y: Float = 0f
+        const val PROGRESS_BAR_POSITION: Int = 0
     }
 
     companion object {
@@ -349,6 +388,18 @@ data class BasicStyle(
 
         /** 中文转换模式：繁体中文 */
         const val CHINESE_CONVERSION_TRADITIONAL = 2
+
+        /** 进度条颜色模式：跟随状态栏 */
+        const val PROGRESS_BAR_COLOR_FOLLOW: Int = 0
+
+        /** 进度条颜色模式：彩虹渐变 */
+        const val PROGRESS_BAR_COLOR_RAINBOW: Int = 1
+
+        /** 进度条位置：歌词下方 */
+        const val PROGRESS_BAR_POSITION_BELOW: Int = 0
+
+        /** 进度条位置：歌词上方 */
+        const val PROGRESS_BAR_POSITION_ABOVE: Int = 1
     }
 
     /**
