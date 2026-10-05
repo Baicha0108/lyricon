@@ -15,7 +15,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /** Fork 的发布仓库；检查更新与「前往发布页」都指向这里。 */
-const val UPDATE_REPO = "Kifranei/lyricon"
+const val UPDATE_REPO = "Baicha0108/lyricon"
 const val UPDATE_RELEASES_URL = "https://github.com/$UPDATE_REPO/releases"
 
 private const val LATEST_RELEASE_API = "https://api.github.com/repos/$UPDATE_REPO/releases/latest"
@@ -164,10 +164,11 @@ fun detectArchLabel(assetName: String): String? {
 }
 
 /**
- * 按数字段逐位比较版本号，忽略 `v` 前缀与 `-fork1` / `.rc` 之类的非数字后缀。
+ * 按数字段逐位比较版本号，忽略 `v` 前缀。
  *
- * 注意本项目版本名形如 `1.0.40-rc1`：`rc1` 段以字母开头，takeWhile 取不到数字，
- * 因此实际参与比较的是 `1.0.40`，rc 序号不影响新旧判定。
+ * 版本串里出现的所有数字段都会参与比较：`1.0.40-rc3` → `[1,0,40,3]`、
+ * `1.0.40-rc2-fork1` → `[1,0,40,2,1]`，因此 rc / fork 序号变化也能识别为新版本；
+ * 缺失的段按 0 处理（`1.0.41` > `1.0.40`）。
  */
 fun compareVersionNames(left: String, right: String): Int {
     val l = left.versionParts()
@@ -179,9 +180,13 @@ fun compareVersionNames(left: String, right: String): Int {
     return 0
 }
 
+/**
+ * 取出版本名里的全部数字段。
+ *
+ * 早期实现只取每段开头的数字，"rc2"/"fork1" 这类以字母开头的段会被整段丢弃，
+ * 导致 `1.0.40-rc2` 与 `1.0.40-rc3` 被判为相同版本、永远检测不到更新。
+ */
+private val VERSION_NUMBER_REGEX = Regex("""\d+""")
+
 private fun String.versionParts(): List<Int> =
-    trim()
-        .removePrefix("v")
-        .removePrefix("V")
-        .split('.', '-', '_')
-        .mapNotNull { part -> part.takeWhile { it.isDigit() }.toIntOrNull() }
+    VERSION_NUMBER_REGEX.findAll(trim()).map { it.value.toInt() }.toList()

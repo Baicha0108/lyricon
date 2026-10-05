@@ -14,8 +14,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -36,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -85,6 +88,7 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
+import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -336,11 +340,9 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
             )
         }
 
-        // 浮动液态玻璃底栏需要采样页面内容，所以在页面外层录制 backdrop 并以覆盖层绘制；
-        // 停靠底栏则交给页面 Scaffold 正常占位，避免列表尾部被遮挡。
+        // 浮动液态玻璃底栏需要采样页面内容，所以在页面外层录制 backdrop 并以覆盖层绘制。
         val overlayBackdrop = rememberLayerBackdrop()
         val sharedBackgroundBackdrop = rememberLayerBackdrop()
-        val pageBottomBar: @Composable () -> Unit = if (useRail || showFloatingBar) ({}) else bottomBarContent
 
         CompositionLocalProvider(
             LocalFloatingBottomBarEnabled provides showFloatingBar,
@@ -348,59 +350,83 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
             LocalSharedBackgroundEnabled provides sharedBackgroundEnabled,
         ) {
             val mainContent: @Composable () -> Unit = {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        if (useRail) {
-                            AppTheme {
-                                MainNavigationRail(
-                                    items = items,
-                                    selectedIndex = selectedIndex,
-                                    onSelected = selectPage,
-                                    backdrop = if (sharedBackgroundEnabled) sharedBackgroundBackdrop else null,
-                                )
-                            }
+                // 根 Scaffold：底栏只在这里渲染一份，不再跟着页面滑动。
+                // 同时 miuix 的窗口内弹窗/弹出菜单会渲染到最外层（renderInRootScaffold），
+                // 因此它们能盖住悬浮底栏覆盖层，与停靠底栏的表现一致。
+                Scaffold(
+                    containerColor = Color.Transparent,
+                    bottomBar = {
+                        if (!useRail && !showFloatingBar) {
+                            AppTheme { bottomBarContent() }
                         }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxSize()
-                                .layerBackdrop(overlayBackdrop)
-                        ) {
-                            HorizontalPager(
-                                state = pagerState,
-                                modifier = Modifier.fillMaxSize(),
-                            ) { page ->
-                                when (page) {
-                                    0 -> HomeTab(
-                                        model = viewModel,
-                                        shortcutCounts = homeShortcutCounts,
-                                        actions = {
-                                            TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
-                                        },
-                                        bottomBar = pageBottomBar
-                                    )
+                    }
+                ) { paddingValues ->
+                    // 页面自身不再绘制底栏，改放一个等高占位，
+                    // 让各页列表的底部留白与改造前保持一致
+                    val pageBottomBar: @Composable () -> Unit = if (useRail || showFloatingBar) {
+                        ({})
+                    } else {
+                        ({
+                            Spacer(
+                                modifier = Modifier.height(paddingValues.calculateBottomPadding())
+                            )
+                        })
+                    }
 
-                                    1 -> ConfigPage(bottomBar = pageBottomBar)
-                                    2 -> SettingsPage(bottomBar = pageBottomBar)
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            if (useRail) {
+                                AppTheme {
+                                    MainNavigationRail(
+                                        items = items,
+                                        selectedIndex = selectedIndex,
+                                        onSelected = selectPage,
+                                        backdrop = if (sharedBackgroundEnabled) sharedBackgroundBackdrop else null,
+                                    )
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize()
+                                    .layerBackdrop(overlayBackdrop)
+                            ) {
+                                HorizontalPager(
+                                    state = pagerState,
+                                    modifier = Modifier.fillMaxSize(),
+                                ) { page ->
+                                    when (page) {
+                                        0 -> HomeTab(
+                                            model = viewModel,
+                                            shortcutCounts = homeShortcutCounts,
+                                            actions = {
+                                                TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
+                                            },
+                                            bottomBar = pageBottomBar
+                                        )
+
+                                        1 -> ConfigPage(bottomBar = pageBottomBar)
+                                        2 -> SettingsPage(bottomBar = pageBottomBar)
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (showFloatingBar) {
-                        // 覆盖层在各页面的 AppTheme 之外，需要自己套主题，否则暗色下取到亮色配色
-                        AppTheme {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.BottomCenter
-                            ) {
-                                bottomBarContent()
+                        if (showFloatingBar) {
+                            // 覆盖层在各页面的 AppTheme 之外，需要自己套主题，否则暗色下取到亮色配色
+                            AppTheme {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    bottomBarContent()
+                                }
                             }
                         }
-                    }
 
-                    AppTheme {
-                        RestartFailedDialog(showState = viewModel.showRestartFailedDialog)
+                        AppTheme {
+                            RestartFailedDialog(showState = viewModel.showRestartFailedDialog)
+                        }
                     }
                 }
             }

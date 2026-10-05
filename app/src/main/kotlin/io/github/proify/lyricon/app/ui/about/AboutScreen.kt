@@ -79,7 +79,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
-private const val GITHUB_REPO_URL = "https://github.com/kifranei/lyricon"
+private const val GITHUB_REPO_URL = "https://github.com/Baicha0108/lyricon"
 
 /**
  * 列表末尾留白，保证内容再少也能继续下滑、让顶部 Logo 完整收起。
@@ -266,6 +266,11 @@ private fun AboutContent(
                         },
                     )
                     BasicComponent(
+                        title = "白茶",
+                        summary = stringResource(R.string.about_summary_baicha),
+                        onClick = { uriHandler.openUri("https://github.com/Baicha0108") },
+                    )
+                    BasicComponent(
                         title = stringResource(R.string.item_view_on_github),
                         summary = GITHUB_REPO_URL,
                         onClick = { uriHandler.openUri(GITHUB_REPO_URL) },
@@ -292,13 +297,23 @@ private fun AboutContent(
                 ) {
                     BasicComponent(
                         title = "Lyricon",
-                        summary = stringResource(R.string.about_summary_lyricon_upstream),
+                        summary = stringResource(R.string.about_summary_lyricon_original),
                         onClick = { uriHandler.openUri("https://github.com/tomakino/lyricon") },
+                    )
+                    BasicComponent(
+                        title = "kifranei lyricon",
+                        summary = stringResource(R.string.about_summary_lyricon_upstream),
+                        onClick = { uriHandler.openUri("https://github.com/kifranei/lyricon") },
                     )
                     BasicComponent(
                         title = "Halcyon",
                         summary = stringResource(R.string.about_summary_halcyon),
                         onClick = { uriHandler.openUri("https://github.com/Kifranei/Halcyon") },
+                    )
+                    BasicComponent(
+                        title = "天道酬勤☆劉先生",
+                        summary = stringResource(R.string.about_summary_progress_bar_source),
+                        onClick = { uriHandler.openUri("https://www.coolapk.com/u/336057") },
                     )
                 }
                 }

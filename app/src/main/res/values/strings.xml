@@ -341,6 +341,9 @@
     <string name="about_acknowledgements">鸣谢</string>
     <string name="about_open_source_projects">开源项目</string>
     <string name="about_summary_lyricon_upstream">本分支基于的上游项目</string>
+    <string name="about_summary_lyricon_original">原始项目</string>
+    <string name="about_summary_baicha">此分支作者</string>
+    <string name="about_summary_progress_bar_source">状态栏歌词进度条来源</string>
     <string name="about_summary_halcyon">关于页设计</string>
     <string name="about_summary_miuix">HyperOS 风格 Compose 组件库</string>
     <string name="about_summary_liquid_glass">液态玻璃着色器效果</string>

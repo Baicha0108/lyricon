@@ -332,6 +332,9 @@
     <string name="about_acknowledgements">Acknowledgements</string>
     <string name="about_open_source_projects">Open Source Projects</string>
     <string name="about_summary_lyricon_upstream">Upstream project this fork is based on</string>
+    <string name="about_summary_lyricon_original">Original project</string>
+    <string name="about_summary_baicha">Author of this fork</string>
+    <string name="about_summary_progress_bar_source">Source of the status bar lyric progress bar</string>
     <string name="about_summary_halcyon">About page design</string>
     <string name="about_summary_miuix">HyperOS-style Compose UI components</string>
     <string name="about_summary_liquid_glass">Liquid glass shader effects</string>
