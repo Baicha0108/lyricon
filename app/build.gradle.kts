@@ -138,6 +138,7 @@ configure<LibraryExtension> {
     buildFeatures {
         buildConfig = true
     }
+    testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
 dependencies {
@@ -186,6 +187,9 @@ dependencies {
 
     // --- 单元测试 ---
     testImplementation(libs.junit)
+    testImplementation(project(":lyric:model"))
+    testImplementation(project(":lyric:statusbarlyric"))
+    testImplementation("org.robolectric:robolectric:4.17")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

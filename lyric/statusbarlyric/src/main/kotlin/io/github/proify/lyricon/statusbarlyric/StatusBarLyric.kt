@@ -111,8 +111,30 @@ class StatusBarLyric(
     var gestureEnabled: Boolean = true
         set(value) {
             field = value
-            isClickable = value
+            isClickable = value && enabledGestures.isNotEmpty()
         }
+
+    /** Only gestures with a configured action participate in recognition and feedback. */
+    var enabledGestures: Set<GestureType> = GestureType.entries.toSet()
+        set(value) {
+            field = value
+            isClickable = gestureEnabled && value.isNotEmpty()
+        }
+
+    fun canHandleGesture(gesture: GestureType): Boolean = gestureEnabled && gesture in enabledGestures
+
+    private var touchPassThrough = false
+
+    /** Prevent a gesture returned to the system from being captured by this view again. */
+    fun withTouchPassThrough(dispatch: () -> Unit) {
+        val previous = touchPassThrough
+        touchPassThrough = true
+        try {
+            dispatch()
+        } finally {
+            touchPassThrough = previous
+        }
+    }
 
     /**
      * 是否启用震动反馈(手势识别成功时触发)。
@@ -134,6 +156,7 @@ class StatusBarLyric(
 
             override fun onSingleTapUp(e: MotionEvent): Boolean {
                 if (gestureLongPressFired) return true
+                if (!canHandleGesture(GestureType.TAP)) return false
                 // 触觉反馈:单击(可关闭)
                 triggerHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
                 performClick()
@@ -142,6 +165,7 @@ class StatusBarLyric(
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if (!canHandleGesture(GestureType.LONG_PRESS)) return
                 gestureLongPressFired = true
                 // 长按:放大提示 + 触觉反馈(可关闭)
                 intensifyPressFeedback()
@@ -473,8 +497,13 @@ class StatusBarLyric(
 
     // --- 手势识别与触摸反馈 ---
 
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (touchPassThrough) return false
+        return super.dispatchTouchEvent(event)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!gestureEnabled) {
+        if (!gestureEnabled || enabledGestures.isEmpty()) {
             // 手势关闭时不做手势识别，按普通 View 行为派发触摸事件。
             return super.onTouchEvent(event)
         }
@@ -484,12 +513,15 @@ class StatusBarLyric(
                 gestureDownX = event.x
                 gestureDownY = event.y
                 gestureLongPressFired = false
+                gestureDetector.setIsLongpressEnabled(canHandleGesture(GestureType.LONG_PRESS))
                 startPressFeedback()
             }
 
             MotionEvent.ACTION_MOVE -> {
                 // 横向拖动时内容跟随手指(阻尼),滑动感更强
-                translationX = (event.x - gestureDownX) * DRAG_FOLLOW_DAMPING
+                val dx = event.x - gestureDownX
+                val swipe = if (dx < 0) GestureType.SWIPE_LEFT else GestureType.SWIPE_RIGHT
+                translationX = if (canHandleGesture(swipe)) dx * DRAG_FOLLOW_DAMPING else 0f
             }
 
             MotionEvent.ACTION_UP -> {
@@ -499,11 +531,14 @@ class StatusBarLyric(
                 // 手动滑动判定:不依赖 Fling 速度,慢速横向拖拽同样生效;
                 // 长按已触发时不再判定滑动,避免一次手势同时触发两个动作
                 if (!gestureLongPressFired && abs(dx) > swipeThreshold && abs(dx) > abs(dy) * 1.5f) {
-                    playSwipeFeedback(dx)
-                    triggerHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
-                    gestureListener?.invoke(
-                        if (dx < 0) GestureType.SWIPE_LEFT else GestureType.SWIPE_RIGHT
-                    )
+                    val swipe = if (dx < 0) GestureType.SWIPE_LEFT else GestureType.SWIPE_RIGHT
+                    if (canHandleGesture(swipe)) {
+                        playSwipeFeedback(dx)
+                        triggerHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
+                        gestureListener?.invoke(swipe)
+                    } else {
+                        releasePressFeedback()
+                    }
                 } else {
                     releasePressFeedback()
                 }

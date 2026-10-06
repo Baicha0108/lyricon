@@ -47,6 +47,10 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 
 ### Fork Enhancements
 
+- 🎚️ **Per-provider lyric controls** — Disable all lyrics, primary lyrics or subtitles for each plugin and adjust its synchronization offset in milliseconds. See [Provider settings](docs/en/app/providers.md).
+
+- 📊 **Listening history and poster wall** — Off by default. Record received tracks locally, rank tracks/artists/albums by actual listening, filter by time and player, and save or share a PNG poster wall. See [Listening history](docs/en/app/listening-history.md).
+
 - 🏝️ **Xiaomi super island (HyperOS dynamic island) integration** — automatically hides the island while the lyric is showing and restores it seamlessly afterwards; can instead auto-shrink the lyric width when the island appears.
 - 🌈 **Rainbow lyrics** — a built-in one-tap rainbow gradient (light / dark palettes), no manual color picking, still overridable.
 - ✨ **Sustain glow** — a breathing glow on long-held highlighted notes, with HDR brightening and rainbow gradient support.

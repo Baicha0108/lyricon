@@ -33,6 +33,7 @@ internal class SongPreprocessor(private val placeholder: TitleSlot) {
     }
 
     private fun fillGap(song: Song): Song {
+        if (song.metadata?.getBoolean(Song.KEY_HIDE_PRIMARY) == true) return song
         val title = songTitle(song) ?: return song
         val lyrics = song.lyrics?.toMutableList() ?: mutableListOf()
         if (lyrics.isEmpty()) {

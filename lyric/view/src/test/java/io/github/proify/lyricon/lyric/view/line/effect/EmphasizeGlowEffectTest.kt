@@ -13,7 +13,7 @@ import org.junit.Test
 
 /**
  * 强调辉光特效的空间自适应强度（strength）行为验证：
- * 状态栏等小空间下按比例收缩缩放 / 位移 / 辉光幅度，避免字形挤出边界。
+ * 状态栏等小空间下按比例收缩缩放和位移，避免字形挤出边界；保留已移除白色辉光的约定。
  */
 class EmphasizeGlowEffectTest {
 
@@ -49,8 +49,8 @@ class EmphasizeGlowEffectTest {
         assertTrue(out.scale > 1f)
         assertTrue(out.dx != 0f)
         assertTrue(out.dy < 0f)
-        assertTrue(out.glowRadius > 0f)
-        assertTrue(out.glowAlpha > 0f)
+        assertEquals(0f, out.glowRadius, 0f)
+        assertEquals(0f, out.glowAlpha, 0f)
     }
 
     @Test

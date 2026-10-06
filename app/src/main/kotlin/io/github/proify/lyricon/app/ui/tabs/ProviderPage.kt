@@ -45,6 +45,7 @@ import io.github.proify.lyricon.app.activity.lyric.provider.LyricModule
 import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderViewModel
 import io.github.proify.lyricon.app.activity.lyric.provider.ModuleTag
 import io.github.proify.lyricon.app.activity.lyric.provider.ProviderPermissionEffect
+import io.github.proify.lyricon.app.activity.lyric.provider.ProviderLyricsSettingsAction
 import io.github.proify.lyricon.app.activity.lyric.provider.ViewMode
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.GoogleRainbowText
@@ -289,6 +290,8 @@ private fun ModuleCard(module: LyricModule, showTags: Boolean, viewModel: LyricP
                         )
                     }
                 }
+                ProviderLyricsSettingsAction(module.packageInfo.packageName, module.label,
+                    Modifier.align(Alignment.Top).padding(start = 8.dp))
             }
 
             if (!module.description.isNullOrBlank()) {

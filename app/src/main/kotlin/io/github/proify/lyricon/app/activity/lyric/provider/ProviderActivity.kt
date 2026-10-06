@@ -371,6 +371,8 @@ class LyricProviderActivity : BaseActivity() {
                             )
                         }
                     }
+                    ProviderLyricsSettingsAction(module.packageInfo.packageName, module.label,
+                        Modifier.align(Alignment.Top).padding(start = 8.dp))
                 }
 
                 if (!module.description.isNullOrBlank()) {

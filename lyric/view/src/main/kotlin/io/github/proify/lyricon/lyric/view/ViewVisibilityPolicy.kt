@@ -37,16 +37,18 @@ internal object ViewVisibilityPolicy {
 
         // Phase 2+3: candidate flags + slot enforcement (max 2 visible sub-views)
         val secondaryActive = v0HasSec && v0.secondary.isStarted && !v0.secondary.isFinished
+        val firstMainHasContent = v0.main.model.let { it.text.isNotBlank() || it.words.isNotEmpty() }
+        val secondMainHasContent = v1?.main?.model?.let { it.text.isNotBlank() || it.words.isNotEmpty() } == true
         val slots = LyricSlotPolicy.select(
-            hasNextLine = v1 != null,
+            hasNextLine = secondMainHasContent,
             mainFinished = v0.main.isFinished,
             secondaryVisible = v0.alwaysShowSecondary || secondaryActive,
             secondaryActive = secondaryActive,
             secondaryMetadata = v0.secondary.model.metadata,
         )
-        val v0mVis = slots.firstMain
+        val v0mVis = slots.firstMain && firstMainHasContent
         val v0sVis = slots.firstSecondary
-        val v1mVis = slots.secondMain
+        val v1mVis = slots.secondMain && secondMainHasContent
 
         v0.main.visibilityIfChanged = if (v0mVis) View.VISIBLE else View.GONE
         v0.secondary.visibilityIfChanged = if (v0sVis) View.VISIBLE else View.GONE

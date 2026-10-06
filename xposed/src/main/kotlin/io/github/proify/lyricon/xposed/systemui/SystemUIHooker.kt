@@ -30,6 +30,7 @@ import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarColorMonitor
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarDisableHooker
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarTouchHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
 import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
@@ -200,8 +201,13 @@ object SystemUIHooker : PackageHooker() {
         })
 
         StatusBarColorMonitor.initialize(module, classLoader)
+        // 根窗口触摸拦截：ColorOS 流体云胶囊铺满状态栏顶层后会吃掉全部触摸，
+        // 这里在状态栏窗口的派发入口挂拦截器，命中歌词区域时由模块直接接管。
+        // 是否真正接管由偏好开关 LyricGesturePrefs.KEY_ROOT_TOUCH_HOOK 控制。
+        StatusBarTouchHooker.initialize(module, classLoader)
         AiTranslator.init(context)
         SystemUIMediaUtils.init(context)
+        io.github.proify.lyricon.xposed.systemui.history.ListeningHistoryRecorder.initialize(context)
         StatusBarViewResolver.init(module, context)
     }
 
@@ -235,6 +241,10 @@ object SystemUIHooker : PackageHooker() {
 
             override fun onDisconnected(subscriber: LyriconSubscriber) {
                 YLog.info(TAG, "lyriconSubscriber onDisconnected")
+                LyricDataHub.onPlaybackStateChanged(false)
+                LyricDataHub.onSongChanged(null)
+                io.github.proify.lyricon.xposed.systemui.history.ListeningHistoryRecorder.onPlaybackStateChanged(false)
+                io.github.proify.lyricon.xposed.systemui.history.ListeningHistoryRecorder.onSongChanged(null)
             }
 
             override fun onConnectTimeout(subscriber: LyriconSubscriber) {
@@ -251,6 +261,9 @@ object SystemUIHooker : PackageHooker() {
     private fun initDataChannel() {
         val context = appContext ?: return
         LyriconBridge.routing(context) {
+            onCommand(AppBridgeConstants.REQUEST_UPDATE_PROVIDER_LYRICS) {
+                LyricDataHub.refreshProviderPolicy()
+            }
             onCommand(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) {
                 val id = it.getString("id")
                 YLog.info(TAG, "App requested view highlight id: ")

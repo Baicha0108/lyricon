@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.app.bridge
 
 object AppBridgeConstants {
+    const val REQUEST_UPDATE_PROVIDER_LYRICS = "request_update_provider_lyrics"
     const val REQUEST_UPDATE_LYRIC_STYLE: String = "request_update_lyric_style"
     const val REQUEST_CLEAR_TRANSLATION_DB: String = "request_clear_translation_db"
     const val REQUEST_HIGHLIGHT_VIEW: String = "request_highlight_view"

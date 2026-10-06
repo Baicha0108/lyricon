@@ -49,7 +49,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -58,7 +57,6 @@ import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.basic.DropdownItem
-import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 
 @Composable
 fun SettingsPage(bottomBar: @Composable () -> Unit = {}) {
@@ -114,7 +112,6 @@ fun SettingsPage(bottomBar: @Composable () -> Unit = {}) {
         item("ui_theme") {
             SettingsSectionCard(topPadding = 16.dp) {
                 ThemeSetting(restartSelf)
-                HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
                 FloatingBarSetting()
             }
         }
@@ -128,7 +125,6 @@ fun SettingsPage(bottomBar: @Composable () -> Unit = {}) {
         item("core_service") {
             SettingsSectionCard(topPadding = 16.dp) {
                 DesktopIconSetting()
-                HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
                 CoreServiceSetting()
             }
         }
@@ -299,7 +295,6 @@ private fun BackupSetting(
         title = stringResource(R.string.item_app_backup),
         onClick = onExport
     )
-    HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
     ArrowPreference(
         startAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
         title = stringResource(R.string.item_app_restore),
@@ -344,7 +339,6 @@ private fun ThemeSetting(onApplied: () -> Unit) {
                 onApplied()
             }
         )
-        HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
     }
 
     val currentThemeMode = remember {

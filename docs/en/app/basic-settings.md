@@ -76,8 +76,7 @@ playback.
 | Tap        | Open control panel| Same as above                                                        |
 | Long press | Play / Pause      | Same as above                                                        |
 
-Slow horizontal dragging is recognized as a swipe, no flick velocity is required. With gestures
-disabled, tapping the lyrics still opens the control panel.
+Slow horizontal dragging is recognized as a swipe; no flick velocity is required. Setting a direction to **No action** returns its swipes to the system without lyric actions or vibration. Left and right are independent, while taps and long presses retain their configured actions. Disabling all four actions or the gesture switch leaves touch handling to the system. Restart System UI after updating this module to load the gesture changes.
 
 Gestures come with touch feedback: a subtle shrink while pressed, the lyric content follows your
 finger when swiping and springs back, long press slightly enlarges it, and tap / long press / swipe

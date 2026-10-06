@@ -90,6 +90,19 @@ fun HomeTab(
         item("system_info") {
             SystemInfoCard()
         }
+
+        item("listening_history") {
+            val context = LocalContext.current
+            Card(Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp).fillMaxWidth(), onClick = {
+                context.startActivity(Intent(context, io.github.proify.lyricon.app.history.ListeningHistoryActivity::class.java))
+            }) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.history_title), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.history_entry_summary), fontSize = 13.sp,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
     }
 }
 

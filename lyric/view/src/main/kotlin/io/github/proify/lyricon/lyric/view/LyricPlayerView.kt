@@ -132,10 +132,12 @@ open class LyricPlayerView(
             if (style.animation.enabled && preset != null) {
                 animateUpdate(preset) {
                     textRecycleView.line = line
+                    updateViewsVisibility()
                     textRecycleView.requestStartMarquee()
                 }
             } else {
                 textRecycleView.line = line
+                updateViewsVisibility()
                 textRecycleView.requestStartMarquee()
             }
 
