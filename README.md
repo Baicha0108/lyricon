@@ -4,10 +4,10 @@
   <img src="resources/logo.svg" width="100" alt="词幕 Logo"/>
 </p>
 
-<h1 align="center">词幕 · Fork</h1>
+<h1 align="center">词幕 · BaiCha Fork</h1>
 
 <p align="center">
-  <b>基于 Xposed 框架的 Android 状态栏歌词增强工具（个人分支）</b>
+  <b>基于 Xposed 框架的 Android 状态栏歌词增强工具（完全由AI修改制作的个人分支）</b>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@
 
 ## ⚠ 关于本分支
 
-本仓库是 [kifranei/lyricon](https://github.com/kifranei/lyricon) 的个人分支（上游又基于 [Lyricon](https://github.com/tomakino/Lyricon)），在保留状态栏歌词、歌词源插件、样式配置等全部能力的基础上，继续做个人向的功能补充与修复。
+本仓库是 [kifranei/lyricon](https://github.com/kifranei/lyricon) 的个人分支（原始项目为 [Lyricon](https://github.com/tomakino/Lyricon)），在保留状态栏歌词、歌词源插件、样式配置等全部能力的基础上，继续做个人向的功能补充与修复。
 
 - **追随上游更新**：上游已原生提供的功能，以跟随上游实现为准。
 - **应用包名**：`io.github.baicha.lyricon.fork`，与上游包名不同，不会覆盖安装原版。
