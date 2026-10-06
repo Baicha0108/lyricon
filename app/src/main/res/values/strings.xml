@@ -6,7 +6,7 @@
 
 <resources>
     <string name="app_name">词幕</string>
-    <string name="app_description">为状态栏添加实时歌词功能</string>
+    <string name="app_description">白茶修复版词幕，在Kifranei增强版基础上增加了“状态栏进度条”，并优化了ui</string>
     <string name="action_confirm">确定</string>
     <string name="action_save">保存</string>
     <string name="action_add">添加</string>

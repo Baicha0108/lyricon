@@ -6,7 +6,7 @@
 
 <resources>
     <string name="app_name">Lyricon</string>
-    <string name="app_description">Adds live lyrics to the status bar</string>
+    <string name="app_description">Baicha\'s fixed build of Lyricon, based on Kifranei\'s enhanced version, adding a status bar progress bar and UI polish</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_save">Save</string>
     <string name="action_add">Add</string>
