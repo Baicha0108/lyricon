@@ -156,6 +156,7 @@ const zhSidebar = [
                                        { text : '翻译', link: '/zh-cn/app/translation' },
                                        { text : '视图规则', link: '/zh-cn/app/visibility-rules' },
                                          { text : '应用设置', link: '/zh-cn/app/settings' },
+                                         { text : '听歌历史与海报墙', link: '/zh-cn/app/listening-history' },
                                          { text : '备份与恢复', link: '/zh-cn/app/backup-restore' },
                                                   { text : 'ROM 适配', link: '/zh-cn/app/rom-notes' },
                                                   { text : '常见问题', link: '/zh-cn/app/troubleshooting' }
@@ -207,6 +208,7 @@ const zhSidebar = [
                                                                                                                                                                            { text : 'Translation', link: '/en/app/translation' },
                                                                                                                                                                            { text : 'View Rules', link: '/en/app/visibility-rules' },
                                                                                                                                                                              { text : 'App Settings', link: '/en/app/settings' },
+                                                                                                                                                                             { text : 'Listening History', link: '/en/app/listening-history' },
                                                                                                                                                                              { text : 'Backup And Restore', link: '/en/app/backup-restore' },
                                                                                                                                                                                       { text : 'ROM Notes', link: '/en/app/rom-notes' },
                                                                                                                                                                                       { text : 'Troubleshooting', link: '/en/app/troubleshooting' }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_lyrics_settings">歌词控制</string>
+    <string name="provider_lyrics_scope">仅对这个提供者生效，修改后立即作用于当前应用。听歌历史继续按实际播放记录；设置会随样式备份保存。</string>
+    <string name="provider_lyrics_disable_all">禁用全部歌词</string>
+    <string name="provider_lyrics_disable_all_summary">关闭这个提供者的主行与副行歌词。</string>
+    <string name="provider_lyrics_disable_main">禁用主行歌词</string>
+    <string name="provider_lyrics_disable_main_summary">隐藏主行，保留可用的下方副行。</string>
+    <string name="provider_lyrics_disable_secondary">禁用副行歌词</string>
+    <string name="provider_lyrics_disable_secondary_summary">隐藏下方翻译、罗马音及附加字幕，保留主行。</string>
+    <string name="provider_lyrics_delay">歌词延时</string>
+    <string name="provider_lyrics_delay_summary">单位毫秒，范围 -30000 至 30000。正值延后，负值提前；0 为原始同步。纯文本歌词可延后，无法提前尚未收到的内容。</string>
+    <string name="provider_lyrics_delay_value">%1$d 毫秒</string>
+    <string name="provider_lyrics_ms">毫秒</string>
+    <string name="provider_lyrics_reset">重置</string>
+</resources>

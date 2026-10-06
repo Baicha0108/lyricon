@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">听歌历史</string>
+    <string name="history_entry_summary">本地记录、收听统计与可分享的海报墙</string>
+    <string name="history_enable">记录听歌历史</string>
+    <string name="history_enable_summary">默认关闭。开启后记录传到词幕的歌曲、来源、收听时长及封面，仅保存在本机。关闭后保留已有历史。</string>
+    <string name="history_stats">统计</string>
+    <string name="history_recent">历史</string>
+    <string name="history_wall">海报墙</string>
+    <string name="history_all_time">全部时间</string>
+    <string name="history_filter_summary">筛选：%1$s · %2$s</string>
+    <string name="history_today">今天</string>
+    <string name="history_week">近 7 天</string>
+    <string name="history_month">近 30 天</string>
+    <string name="history_year">近一年</string>
+    <string name="history_last_12_hours">近12小时</string>
+    <string name="history_last_1_day">近1天</string>
+    <string name="history_last_2_days">近2天</string>
+    <string name="history_last_3_days">近3天</string>
+    <string name="history_all_players">全部播放器</string>
+    <string name="history_disabled_empty">开启记录后，传到词幕的歌曲会显示在这里。</string>
+    <string name="history_empty">当前范围还没有听歌记录。</string>
+    <string name="history_wall_summary">%1$s · %2$d 次达标播放 · %3$d 分钟</string>
+    <string name="history_save">保存 PNG</string>
+    <string name="history_share">分享海报墙</string>
+    <string name="history_exporting">正在导出…</string>
+    <string name="history_saved">海报墙图片已保存</string>
+    <string name="history_export_error">无法保存图片</string>
+    <string name="history_clear">清空历史</string>
+    <string name="history_clear_confirm">删除本机全部听歌记录和封面？此操作无法撤销，记录开关不会改变。</string>
+    <string name="history_qualified">已达统计门槛</string>
+    <string name="history_not_qualified">未达统计门槛</string>
+    <string name="history_total_plays">%1$d 次达标播放</string>
+    <string name="history_totals">收听 %1$d 分钟 · %2$d 首歌曲 · %3$d 条历史</string>
+    <string name="history_threshold">听满半首或 4 分钟计入榜单。暂停、拖动进度不增加收听时间；未达标播放仍保留在历史中。</string>
+    <string name="history_top_tracks">歌曲排行榜</string>
+    <string name="history_top_artists">歌手排行榜</string>
+    <string name="history_top_albums">专辑排行榜</string>
+    <string name="history_no_qualified">尚未有播放达到统计门槛。</string>
+    <string name="history_rank_count">%1$d 次 · %2$d 分钟</string>
+    <string name="history_daily">最近 30 天收听趋势</string>
+    <string name="history_loading">正在读取听歌历史…</string>
+    <string name="history_wall_empty">当前范围还没有达标歌曲。听满半首或 4 分钟后，歌曲才会出现在海报墙中。</string>
+    <string name="history_fullscreen">全屏</string>
+    <string name="history_exit_fullscreen">退出全屏</string>
+</resources>

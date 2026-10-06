@@ -42,6 +42,10 @@ data class Song(
     var metadata: LyricMetadata? = null,
     var lyrics: List<RichLyricLine>? = null,
 ) : DeepCopyable<Song>, Normalize<Song> {
+    companion object {
+        /** Local rendering hint: provider rules disabled the primary lane, including title gaps. */
+        const val KEY_HIDE_PRIMARY = "lyricon_hide_primary"
+    }
 
     /**
      * 返回本歌曲的深拷贝。

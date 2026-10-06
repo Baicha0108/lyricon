@@ -11,7 +11,7 @@ plugins {
 }
 
 extra["appPackageName"] = "io.github.baicha.lyricon.fork"
-extra["appVersionCode"] = 54
+extra["appVersionCode"] = 56
 extra["appVersionName"] = "1.0.40-rc3"
 extra["compileSdkVersion"] = 37
 extra["targetSdkVersion"] = 37

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_lyrics_settings">Lyric controls</string>
+    <string name="provider_lyrics_scope">Applies only to this provider. Changes take effect immediately for the current app. Listening history uses actual playback. Controls are included in style backups.</string>
+    <string name="provider_lyrics_disable_all">Disable all lyrics</string>
+    <string name="provider_lyrics_disable_all_summary">Hide this provider’s primary and secondary lyric lines.</string>
+    <string name="provider_lyrics_disable_main">Disable primary lyrics</string>
+    <string name="provider_lyrics_disable_main_summary">Hide the primary line and retain available subtitles.</string>
+    <string name="provider_lyrics_disable_secondary">Disable secondary lyrics</string>
+    <string name="provider_lyrics_disable_secondary_summary">Hide translations, romanization and additional subtitles below the primary line.</string>
+    <string name="provider_lyrics_delay">Lyric delay</string>
+    <string name="provider_lyrics_delay_summary">Milliseconds, from -30000 to 30000. Positive values delay lyrics; negative values advance them. Zero keeps original timing. Plain text can be delayed but cannot be shown before it arrives.</string>
+    <string name="provider_lyrics_delay_value">%1$d ms</string>
+    <string name="provider_lyrics_ms">Milliseconds</string>
+    <string name="provider_lyrics_reset">Reset</string>
+</resources>

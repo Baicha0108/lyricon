@@ -13,6 +13,7 @@ import io.github.proify.android.extensions.safeDecode
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.bridge.AppBridge.LyricStylePrefs
+import io.github.proify.lyricon.app.bridge.ProviderLyricPrefs
 import io.github.proify.lyricon.app.bridge.AppBridge.LyricStylePrefs.KEY_CONFIGURED_PACKAGES
 import io.github.proify.lyricon.app.bridge.AppBridge.LyricStylePrefs.KEY_ENABLED_PACKAGES
 import io.github.proify.lyricon.lyric.style.BasicStyle
@@ -44,6 +45,7 @@ object LyricPrefs {
     fun getLyricStylePrefNames() = mutableListOf<String>().apply {
         add(LyricStylePrefs.PREF_NAME_BASE)
         add(LyricStylePrefs.PREF_NAME_PACKAGE_MANAGER)
+        add(ProviderLyricPrefs.PREF_NAME)
 
         getConfiguredPackageNames().forEach {
             add(getPackagePrefName(it))

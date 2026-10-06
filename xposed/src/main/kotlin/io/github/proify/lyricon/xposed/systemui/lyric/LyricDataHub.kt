@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.xposed.systemui.lyric
 
 import android.util.Log
+import io.github.proify.lyricon.app.bridge.ProviderLyricPolicy
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
@@ -17,6 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -41,6 +44,31 @@ object LyricDataHub : ActivePlayerListener {
 
     /** 当前活动的提供者信息 */
     private var providerInfo: ProviderInfo? = null
+    @Volatile var providerPolicy = ProviderLyricPolicy()
+        private set
+    @Volatile private var lastPosition = 0L
+    private var isTextMode = false
+    private var cachedRawText: String? = null
+    private var playing = false
+    private val textScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var textGeneration = 0
+    private var textSequence = 0L
+    private var lastDeliveredTextSequence = 0L
+
+    fun lyricPosition(position: Long): Long = providerPolicy.lyricPosition(position)
+
+    @Synchronized fun refreshProviderPolicy() {
+        val next = ProviderLyricsPreferences.read(providerInfo?.providerPackageName)
+        if (next == providerPolicy) return
+        providerPolicy = next
+        reprocessCurrentSong()
+        listeners.forEach { it.onSeekTo(lastPosition) }
+    }
+
+    private fun cancelPendingText() {
+        textGeneration++
+        textScope.coroutineContext.cancelChildren()
+    }
 
     fun addListener(listener: ActivePlayerListener) {
         listeners.add(listener)
@@ -55,15 +83,16 @@ object LyricDataHub : ActivePlayerListener {
      * 所有歌词加工都在后台协程执行，避免阻塞播放器回调线程。
      * @param rawSong 待加工的原始歌曲
      */
-    private fun runProcessingPipeline(rawSong: Song?) {
+    @Synchronized private fun runProcessingPipeline(rawSong: Song?) {
         val song = rawSong?.deepCopy()
+        val policy = providerPolicy
         val currentVersion = versionCounter.incrementAndGet()
         activePipelineJob?.cancel()
 
         activePipelineJob = scope.launch {
             try {
-                if (song == null) {
-                    if (isCurrentVersion(currentVersion)) dispatchSong(null)
+                if (song == null || policy.blocksEverything) {
+                    dispatchSong(null, currentVersion, policy)
                     return@launch
                 }
 
@@ -74,14 +103,14 @@ object LyricDataHub : ActivePlayerListener {
                 if (!isCurrentVersion(currentVersion)) return@launch
 
                 // 第一次分发：基础处理完成后尽快刷新 UI
-                dispatchSong(LyricDataProcessor.executeDisplayProcessing(preProcessed, style))
+                dispatchSong(LyricDataProcessor.executeDisplayProcessing(preProcessed, style), currentVersion, policy)
 
                 // 2. 后台后置流水线：处理 AI 翻译等耗时扩展
                 val finalSong =
                     LyricDataProcessor.executePostProcessingPipeline(preProcessed, style)
 
                 if (isCurrentVersion(currentVersion)) {
-                    dispatchSong(LyricDataProcessor.executeDisplayProcessing(finalSong, style))
+                    dispatchSong(LyricDataProcessor.executeDisplayProcessing(finalSong, style), currentVersion, policy)
                 } else {
                     logOutdatedPipeline(currentVersion, finalSong)
                 }
@@ -106,20 +135,28 @@ object LyricDataHub : ActivePlayerListener {
      * 重走加工流程
      * 当配置（繁简、AI 开关、翻译模式）变更时调用，无需切歌即可应用新设置。
      */
-    fun reprocessCurrentSong() {
-        runProcessingPipeline(cachedRawSong)
+    @Synchronized fun reprocessCurrentSong() {
+        if (isTextMode) {
+            cancelPendingText()
+            listeners.forEach { it.onReceiveText(null) }
+            scheduleText(cachedRawText)
+        } else runProcessingPipeline(cachedRawSong)
     }
 
     // --- ActivePlayerListener 触发点 ---
 
-    override fun onSongChanged(song: Song?) {
+    @Synchronized override fun onSongChanged(song: Song?) {
+        cancelPendingText()
+        isTextMode = false
+        cachedRawText = null
         this.cachedRawSong = song?.deepCopy()
         runProcessingPipeline(song)
     }
 
-    private var lastDispatchSongId = 0
-    private fun dispatchSong(song: Song?) {
-        val normalize = song?.deepCopy()?.normalize()
+    private var lastDispatchSongId: Int? = null
+    @Synchronized private fun dispatchSong(song: Song?, version: Int, policy: ProviderLyricPolicy) {
+        if (!isCurrentVersion(version)) return
+        val normalize = filterProviderLyrics(song?.normalize(), policy)
 
         val hashCode = normalize?.hashCode() ?: 0
         if (hashCode == lastDispatchSongId) return
@@ -130,19 +167,58 @@ object LyricDataHub : ActivePlayerListener {
 
     // --- 纯状态透传 (不涉及加工) ---
 
-    override fun onReceiveText(text: String?) {
-        listeners.forEach { it.onReceiveText(text) }
+    @Synchronized override fun onReceiveText(text: String?) {
+        if (!isTextMode) {
+            versionCounter.incrementAndGet()
+            activePipelineJob?.cancel()
+            cancelPendingText()
+            isTextMode = true
+            cachedRawSong = null
+            lastDispatchSongId = null
+            listeners.forEach { it.onSongChanged(null) }
+        }
+        cachedRawText = text
+        if (text.isNullOrBlank()) cancelPendingText()
+        scheduleText(text)
     }
 
-    override fun onPlaybackStateChanged(isPlaying: Boolean) {
+    private fun scheduleText(text: String?) {
+        val policy = providerPolicy
+        val filtered = policy.filterText(text)
+        val wait = if (playing && filtered != null) policy.delayMs.coerceAtLeast(0).toLong() else 0L
+        val sequence = ++textSequence
+        if (wait == 0L) {
+            lastDeliveredTextSequence = sequence
+            listeners.forEach { it.onReceiveText(filtered) }
+            return
+        }
+        val generation = textGeneration
+        // Canceling on every update could starve a delayed fast stream. Never overwrite a newer line.
+        textScope.launch {
+            delay(wait)
+            synchronized(this@LyricDataHub) {
+                if (generation == textGeneration && isTextMode && sequence > lastDeliveredTextSequence) {
+                    lastDeliveredTextSequence = sequence
+                    listeners.forEach { it.onReceiveText(filtered) }
+                }
+            }
+        }
+    }
+
+    @Synchronized override fun onPlaybackStateChanged(isPlaying: Boolean) {
+        playing = isPlaying
+        if (!isPlaying) cancelPendingText()
         listeners.forEach { it.onPlaybackStateChanged(isPlaying) }
     }
 
     override fun onPositionChanged(position: Long) {
+        lastPosition = position
         listeners.forEach { it.onPositionChanged(position) }
     }
 
-    override fun onSeekTo(position: Long) {
+    @Synchronized override fun onSeekTo(position: Long) {
+        lastPosition = position
+        cancelPendingText()
         listeners.forEach { it.onSeekTo(position) }
     }
 
@@ -154,8 +230,19 @@ object LyricDataHub : ActivePlayerListener {
         listeners.forEach { it.onDisplayRomaChanged(isDisplayRoma) }
     }
 
-    override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
+    @Synchronized override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
+        if (this.providerInfo != providerInfo) {
+            versionCounter.incrementAndGet()
+            activePipelineJob?.cancel()
+            cancelPendingText()
+            cachedRawSong = null
+            cachedRawText = null
+            isTextMode = false
+            lastDispatchSongId = null
+            lastPosition = 0
+        }
         this.providerInfo = providerInfo
+        providerPolicy = ProviderLyricsPreferences.read(providerInfo?.providerPackageName)
         listeners.forEach { it.onActiveProviderChanged(providerInfo) }
     }
 }

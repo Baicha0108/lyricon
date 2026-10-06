@@ -87,7 +87,7 @@ object LyricViewController : ActivePlayerListener,
     private val frameUpdater = Runnable {
         val controllers = StatusBarViewManager.controllers
         for (i in controllers.indices) {
-            controllers[i].lyricView.setPosition(currentLogicPosition)
+            controllers[i].lyricView.setPosition(LyricDataHub.lyricPosition(currentLogicPosition))
         }
         syncXiaomiIslandHide()
     }
@@ -144,7 +144,7 @@ object LyricViewController : ActivePlayerListener,
         updateAllControllers {
             lyricView.setSong(song)
             refreshTranslationVisibility(lyricView)
-            if (!isPlaying && retainPausedLyrics) lyricView.seekTo(currentLogicPosition)
+            if (isPlaying || retainPausedLyrics) lyricView.seekTo(LyricDataHub.lyricPosition(currentLogicPosition))
         }
 
         pushEffectiveDuration()
@@ -236,7 +236,7 @@ object LyricViewController : ActivePlayerListener,
      */
     override fun onSeekTo(position: Long) {
         this.currentLogicPosition = position
-        updateAllControllers { lyricView.seekTo(position) }
+        updateAllControllers { lyricView.seekTo(LyricDataHub.lyricPosition(position)) }
     }
 
     /**

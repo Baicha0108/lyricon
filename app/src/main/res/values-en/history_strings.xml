@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Listening history</string>
+    <string name="history_entry_summary">Local listening stats and a shareable poster wall</string>
+    <string name="history_enable">Record listening history</string>
+    <string name="history_enable_summary">Off by default. When enabled, stores received songs, player, listening time and covers locally. Turning it off retains your history.</string>
+    <string name="history_stats">Stats</string>
+    <string name="history_recent">History</string>
+    <string name="history_wall">Poster wall</string>
+    <string name="history_all_time">All time</string>
+    <string name="history_filter_summary">Filter: %1$s · %2$s</string>
+    <string name="history_today">Today</string>
+    <string name="history_week">Last 7 days</string>
+    <string name="history_month">Last 30 days</string>
+    <string name="history_year">Last year</string>
+    <string name="history_last_12_hours">Last 12 hours</string>
+    <string name="history_last_1_day">Last day</string>
+    <string name="history_last_2_days">Last 2 days</string>
+    <string name="history_last_3_days">Last 3 days</string>
+    <string name="history_all_players">All players</string>
+    <string name="history_disabled_empty">Enable recording to see songs received by Lyricon here.</string>
+    <string name="history_empty">No listening history in this range.</string>
+    <string name="history_wall_summary">%1$s · %2$d qualified plays · %3$d minutes</string>
+    <string name="history_save">Save PNG</string>
+    <string name="history_share">Share poster wall</string>
+    <string name="history_exporting">Exporting…</string>
+    <string name="history_saved">Poster image saved</string>
+    <string name="history_export_error">Unable to save image</string>
+    <string name="history_clear">Clear history</string>
+    <string name="history_clear_confirm">Delete all local listening history and covers? This cannot be undone. Recording settings are retained.</string>
+    <string name="history_qualified">Qualified play</string>
+    <string name="history_not_qualified">Below threshold</string>
+    <string name="history_total_plays">%1$d qualified plays</string>
+    <string name="history_totals">%1$d minutes · %2$d tracks · %3$d history entries</string>
+    <string name="history_threshold">A play qualifies after half the track or 4 minutes. Pauses and seeks do not add listening time. Other plays remain in history.</string>
+    <string name="history_top_tracks">Top tracks</string>
+    <string name="history_top_artists">Top artists</string>
+    <string name="history_top_albums">Top albums</string>
+    <string name="history_no_qualified">No plays have reached the threshold yet.</string>
+    <string name="history_rank_count">%1$d plays · %2$d minutes</string>
+    <string name="history_daily">Listening over the last 30 days</string>
+    <string name="history_loading">Loading listening history…</string>
+    <string name="history_wall_empty">No qualified tracks in this range. Tracks appear on the wall after half the track or 4 minutes of listening.</string>
+    <string name="history_fullscreen">Full screen</string>
+    <string name="history_exit_fullscreen">Exit full screen</string>
+</resources>

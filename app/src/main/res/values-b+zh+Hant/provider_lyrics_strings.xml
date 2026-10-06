@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_lyrics_settings">歌詞控制</string>
+    <string name="provider_lyrics_scope">僅對這個提供者生效，修改後立即作用於目前應用程式。聽歌歷史繼續按實際播放記錄；設定會隨樣式備份儲存。</string>
+    <string name="provider_lyrics_disable_all">停用全部歌詞</string>
+    <string name="provider_lyrics_disable_all_summary">關閉這個提供者的主行與副行歌詞。</string>
+    <string name="provider_lyrics_disable_main">停用主行歌詞</string>
+    <string name="provider_lyrics_disable_main_summary">隱藏主行，保留可用的下方副行。</string>
+    <string name="provider_lyrics_disable_secondary">停用副行歌詞</string>
+    <string name="provider_lyrics_disable_secondary_summary">隱藏下方翻譯、羅馬音及附加字幕，保留主行。</string>
+    <string name="provider_lyrics_delay">歌詞延時</string>
+    <string name="provider_lyrics_delay_summary">單位毫秒，範圍 -30000 至 30000。正值延後，負值提前；0 為原始同步。純文字歌詞可延後，無法提前尚未收到的內容。</string>
+    <string name="provider_lyrics_delay_value">%1$d 毫秒</string>
+    <string name="provider_lyrics_ms">毫秒</string>
+    <string name="provider_lyrics_reset">重置</string>
+</resources>
